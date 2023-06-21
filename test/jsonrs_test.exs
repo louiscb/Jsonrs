@@ -17,7 +17,8 @@ defmodule JsonrsTest do
     end
 
     test "nested types" do
-      assert Jsonrs.encode!(%{a: [3, {URI.parse("http://foo.bar"), ~T[12:00:00]}]}) == ~s({"a":[3,["http://foo.bar","12:00:00"]]})
+      assert Jsonrs.encode!(%{a: [3, {URI.parse("http://foo.bar"), ~T[12:00:00]}]}) ==
+               ~s({"a":[3,["http://foo.bar","12:00:00"]]})
     end
 
     test "prettily" do
@@ -26,7 +27,9 @@ defmodule JsonrsTest do
 
     test "without custom protocols when lean" do
       assert "12:00:00" == Jsonrs.encode!(~T[12:00:00]) |> Jsonrs.decode!()
-      assert %{"hour" => _, "minute" => _, "second" => _} = Jsonrs.encode!(~T[12:00:00], lean: true) |> Jsonrs.decode!()
+
+      assert %{"hour" => _, "minute" => _, "second" => _} =
+               Jsonrs.encode!(~T[12:00:00], lean: true) |> Jsonrs.decode!()
     end
 
     test "with compress: :gzip" do
@@ -72,13 +75,33 @@ defmodule JsonrsTest do
     end
   end
 
-  describe "internal structs" do
-    test "internal structs don't encode according to their defimpl" do
-      child = %Child{}
-      assert "{\"n\":\"child\",\"t\":\"child\"}" == Jsonrs.encode!(child)
+  defmodule SomeStruct do
+    defstruct [:field, :inner_struct]
+  end
 
-      human = %Human{}
-      assert "{\"child\":{\"n\":\"child\",\"t\":\"child\"},\"n\":\"world\",\"t\":\"human\"}" == Jsonrs.encode!(human)
+  defmodule InnerStruct do
+    defstruct [:field, :ignored_field]
+  end
+
+  defimpl Jsonrs.Encoder, for: SomeStruct do
+    def encode(%{field: f, inner_struct: is}) do
+      %{f: f, is: is}
     end
+  end
+
+  defimpl Jsonrs.Encoder, for: InnerStruct do
+    def encode(%{field: f}) do
+      %{f: f}
+    end
+  end
+
+  test "protocols" do
+    val = %SomeStruct{
+      field: "a",
+      inner_struct: %InnerStruct{field: "a", ignored_field: "b"}
+    }
+
+    assert ~s({"f":"a","inner_struct":{"f":"a"}}) ==
+             Jsonrs.encode!(val)
   end
 end
