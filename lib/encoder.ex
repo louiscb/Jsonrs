@@ -53,6 +53,11 @@ defimpl Jsonrs.Encoder, for: URI do
 end
 
 defimpl Jsonrs.Encoder, for: Any do
-  # def encode(s) when is_struct(s), do: s |> Map.from_struct() |> Jsonrs.Encoder.encode()
-  def encode(any), do: any
+  def encode(s) when is_struct(s) do
+    s |> Map.from_struct() |> Jsonrs.Encoder.encode()
+  end
+
+  def encode(any) do
+    any
+  end
 end

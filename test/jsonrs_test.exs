@@ -17,7 +17,14 @@ defmodule JsonrsTest do
     end
 
     test "nested types" do
-      assert Jsonrs.encode!(%{a: [3, {URI.parse("http://foo.bar"), ~T[12:00:00]}]}) == ~s({"a":[3,["http://foo.bar","12:00:00"]]})
+      assert Jsonrs.encode!(
+        %{
+          a: [
+            3,
+            {URI.parse("http://foo.bar"), ~T[12:00:00]}
+          ]
+        })
+        == ~s({"a":[3,["http://foo.bar","12:00:00"]]})
     end
 
     test "prettily" do
@@ -69,6 +76,16 @@ defmodule JsonrsTest do
   describe "decodes" do
     test "simple map" do
       assert Jsonrs.decode!(~s({"foo":5})) == %{"foo" => 5}
+    end
+  end
+
+  describe "internal structs with defimpl" do
+    test "internal structs don't work" do
+      child = %Child{}
+      assert "{\"n\":\"child\",\"t\":\"child\"}" == Jsonrs.encode!(child)
+
+      human = %Human{}
+      assert "{\"child\":{\"n\":\"child\",\"t\":\"child\"},\"n\":\"world\",\"t\":\"human\"}" == Jsonrs.encode!(human)
     end
   end
 end

@@ -14,7 +14,8 @@ defmodule Jsonrs.MixProject do
       description: description(),
       package: package(),
       docs: docs(),
-      source_url: "https://github.com/benhaney/jsonrs"
+      source_url: "https://github.com/benhaney/jsonrs",
+      consolidate_protocols: Mix.env() != :test
     ]
   end
 
