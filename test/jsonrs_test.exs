@@ -96,10 +96,14 @@ defmodule JsonrsTest do
   end
 
   test "protocols" do
+    is = %InnerStruct{field: "a", ignored_field: "b"}
+
     val = %SomeStruct{
       field: "a",
-      inner_struct: %InnerStruct{field: "a", ignored_field: "b"}
+      inner_struct: is
     }
+
+    assert ~s({"f":"a"}) == Jsonrs.encode!(is)
 
     assert ~s({"f":"a","inner_struct":{"f":"a"}}) ==
              Jsonrs.encode!(val)
